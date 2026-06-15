@@ -1,0 +1,5 @@
+# All production requirements
+-r requirements.txt
+
+# Local development only - not for deployment
+ollama==0.6.2
