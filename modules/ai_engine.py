@@ -2,15 +2,16 @@ import ollama
 from modules.sheets_connector import (
     get_all_data,
     check_reorder_alerts,
-    check_vendor_delays, 
+    check_vendor_delays,
     check_idle_machines
 )
 from modules.system_prompt import SYSTEM_PROMPT
 
+
 def build_context(data, alerts):
     """
     Convert raw sheet data into readable text for AI.
-    Input: all 5 sheets data + alerts dictionary
+    Input: all 6 sheets data + alerts dictionary
     Output: one clean text string AI can reason about
     """
 
@@ -27,7 +28,7 @@ def build_context(data, alerts):
             f"Reserved: {row['Customer_Reserved']}"
         )
 
-    # Production_Jobs
+    # Production Jobs
     context.append("\n=== ACTIVE PRODUCTION JOBS ===")
     for row in data["production_jobs"]:
         context.append(
@@ -44,7 +45,7 @@ def build_context(data, alerts):
     for row in data["machines"]:
         context.append(
             f"- {row['Machine_ID']} ({row['Machine_Name']}): "
-            f"Status: {row['Current_Status']} | " 
+            f"Status: {row['Current_Status']} | "
             f"Job: {row['Current_Job_ID']} | "
             f"Condition: {row['Condition']} | "
             f"Runtime: {row['Runtime_Hours']}hrs | "
@@ -71,7 +72,7 @@ def build_context(data, alerts):
             f"- {row['Log_ID']}: {row['Part_Name']} ({row['Part_Code']}) | "
             f"Defect: {row['Defect_Type']} | "
             f"Stage: {row['Stage_Found']} | "
-            f"Action: {row['Action_Taken']} | " 
+            f"Action: {row['Action_Taken']} | "
             f"Decision: {row['Decision']} | "
             f"Date: {row['Date']}"
         )
@@ -99,20 +100,21 @@ def build_context(data, alerts):
         context.append("REORDER ALERTS: None")
 
     if alerts["vendor_delays"]:
-        context.append("VENDOR DELAY ALERTS:") 
+        context.append("VENDOR DELAY ALERTS:")
         for alert in alerts["vendor_delays"]:
             context.append(f"  ❌ {alert['message']}")
     else:
         context.append("VENDOR DELAY ALERTS: None")
 
     if alerts["idle_machines"]:
-        context.append("IDLE MACHINE ALERTS:") 
+        context.append("IDLE MACHINE ALERTS:")
         for alert in alerts["idle_machines"]:
             context.append(f"  🔴 {alert['message']}")
     else:
         context.append("IDLE MACHINE ALERTS: None")
 
     return "\n".join(context)
+
 
 def get_ai_response(user_message, context):
     """
@@ -139,10 +141,11 @@ Based on this data, please answer the following query:
         )
 
         return response["message"]["content"]
-    
+
     except Exception as e:
         return f"❌ AI Error: {e}. Please ensure Ollama is running."
-    
+
+
 def process_query(user_message, spreadsheet):
     """
     Master function - orchestrates everything.
@@ -151,7 +154,7 @@ def process_query(user_message, spreadsheet):
     """
 
     try:
-        # Step 1: Read all 5 sheets
+        # Step 1: Read all 6 sheets
         data = get_all_data(spreadsheet)
 
         # Step 2: Run all 3 alert checks
@@ -161,15 +164,24 @@ def process_query(user_message, spreadsheet):
             "idle_machines": check_idle_machines(
                 data["machines"],
                 data["production_jobs"]
-                )
+            )
         }
 
         # Step 3: Build readable context
         context = build_context(data, alerts)
 
+        # Step 4: Add pattern analysis to context
+        try:
+            from modules.pattern_analyzer import get_all_patterns
+            patterns = get_all_patterns(spreadsheet)
+            context += f"\n\n=== HISTORICAL PATTERNS & EVENTS ===\n{patterns['summary']}"
+        except Exception as pattern_error:
+            context += f"\n\n=== HISTORICAL PATTERNS & EVENTS ===\nPattern data unavailable: {pattern_error}"
+
+        # Step 5: Get AI response
         response = get_ai_response(user_message, context)
 
         return response
-    
+
     except Exception as e:
         return f"❌ System Error: {e}. Please check your connection."
