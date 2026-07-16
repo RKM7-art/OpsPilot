@@ -1,5 +1,7 @@
-streamlit==1.58.0
-openai==2.41.1
+fastapi==0.138.0
+uvicorn==0.49.0
 python-dotenv==1.2.2
+pydantic==2.13.4
+openai==2.41.1
 gspread==6.2.1
 google-auth==2.54.0

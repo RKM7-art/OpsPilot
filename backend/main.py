@@ -110,10 +110,7 @@ def get_gearbox_dashboard(gearbox_id: str):
         data = get_all_data(spreadsheet)
         gearboxes = data.get("gearbox_assembly", [])
 
-        gearbox = next(
-            (g for g in gearboxes if g["Gearbox_ID"] == gearbox_id),
-            None
-        )
+        gearbox = next((g for g in gearboxes if g.get("Gearbox_ID") == gearbox_id), None)
         if not gearbox:
             raise HTTPException(status_code=404, detail="Gearbox not found")
 
