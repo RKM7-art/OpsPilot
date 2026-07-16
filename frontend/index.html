@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsPilot | Sudarshan Gears</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: {
+                        opsBg: '#09090B',
+                        opsSurface: '#18181B',
+                        opsBorder: '#27272A',
+                        accent: '#6366F1',
+                        success: '#10B981',
+                        critical: '#EF4444',
+                        warning: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #09090B; color: #E4E4E7; overflow: hidden; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3F3F46; border-radius: 4px; }
+        .page-enter { animation: fadeIn 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+        .page-exit  { animation: fadeOut 0.3s cubic-bezier(0.4,0,0.2,1) forwards; }
+        @keyframes fadeIn  { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeOut { from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-10px)} }
+        .glass-card { background:rgba(24,24,27,0.6); backdrop-filter:blur(12px); border:1px solid #27272A; transition:all 0.3s ease; }
+        .glass-card:hover { border-color:#6366F1; transform:translateY(-2px); box-shadow:0 10px 30px -10px rgba(99,102,241,0.15); }
+        .typing-dot { width:4px;height:4px;background:#6366F1;border-radius:50%;display:inline-block;animation:typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1){animation-delay:-0.32s}
+        .typing-dot:nth-child(2){animation-delay:-0.16s}
+        @keyframes typing{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+        .scanline{width:100%;height:100px;background:linear-gradient(0deg,rgba(0,0,0,0) 0%,rgba(99,102,241,0.1) 50%,rgba(0,0,0,0) 100%);opacity:0.1;position:fixed;animation:scanline 8s linear infinite;pointer-events:none;z-index:0}
+        @keyframes scanline{0%{top:-100px}100%{top:100vh}}
+        .quick-btn{background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);color:#A1A1AA;font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.15s;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+        .quick-btn:hover{border-color:#6366F1;color:#6366F1;background:rgba(99,102,241,0.15)}
+        .stat-card{background:#18181B;border:1px solid #27272A;border-radius:12px;padding:16px;position:relative;overflow:hidden}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+        .stat-card.green::before{background:#10B981;box-shadow:0 0 8px #10B981}
+        .stat-card.red::before{background:#EF4444;box-shadow:0 0 8px #EF4444}
+        .stat-card.amber::before{background:#F59E0B;box-shadow:0 0 8px #F59E0B}
+        .stat-card.blue::before{background:#6366F1;box-shadow:0 0 8px #6366F1}
+        .count-up{transition:all 0.5s}
+ 
+        /* ── MOBILE RESPONSIVE ── */
+        @media (max-width: 768px) {
+            body { overflow: auto !important; }
+            
+            #login-view { padding: 16px !important; }
+            
+            #gearbox-grid { 
+                grid-template-columns: 1fr !important; 
+                padding: 0 8px !important; 
+            }
+            
+            #dashboard-view > div.flex-1.flex { 
+                flex-direction: column !important; 
+                overflow: auto !important;
+            }
+            
+            main.flex-1 { 
+                padding: 12px !important; 
+                overflow: visible !important;
+            }
+            
+            aside.w-96 { 
+                width: 100% !important; 
+                height: 420px !important;
+                border-left: none !important;
+                border-top: 1px solid #27272A !important;
+                flex-shrink: 0 !important;
+            }
+            
+            .grid.grid-cols-4 { 
+                grid-template-columns: repeat(2, 1fr) !important; 
+                gap: 8px !important;
+            }
+            
+            .grid.grid-cols-2 { 
+                grid-template-columns: 1fr !important; 
+            }
+            
+            header { padding: 0 12px !important; }
+            header h1 { font-size: 13px !important; }
+            
+                #role-indicator { display: none !important; }
+        
+            #quick-actions { 
+                overflow-x: auto !important; 
+                flex-wrap: nowrap !important;
+                -webkit-overflow-scrolling: touch;
+            }
+        
+            .text-2xl { font-size: 18px !important; }
+            .text-3xl { font-size: 20px !important; }
+            
+            .glass-card { padding: 16px !important; }
+            .glass-card h3 { font-size: 16px !important; }
+            
+            #selection-view { 
+                padding: 24px 16px !important; 
+                justify-content: flex-start !important;
+                padding-top: 40px !important;
+            }
+            #selection-view h1 { font-size: 22px !important; }
+        }
+ 
+        @media (max-width: 480px) {
+            .stat-card { padding: 12px !important; }
+            .text-2xl { font-size: 16px !important; }
+            header .ml-auto { gap: 6px !important; }
+            #selection-view h1 { font-size: 18px !important; }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col font-sans antialiased text-sm">
+<div class="scanline"></div>
+ 
+<div id="login-view" class="h-full w-full flex items-center justify-center p-8 relative z-20 page-enter">
+    <div class="glass-card rounded-2xl p-8 w-full max-w-md shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
+        <div class="flex items-center justify-center gap-3 mb-8">
+            <div class="w-10 h-10 rounded bg-opsBg border border-opsBorder flex items-center justify-center text-accent text-lg">⚙</div>
+            <h1 class="text-2xl font-semibold text-white">OpsPilot</h1>
+        </div>
+        <div class="space-y-5">
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-2">Operator ID</label>
+                <input type="text" id="userid" placeholder="OWNER / MANAGER / QC"
+                    class="w-full bg-opsBg border border-opsBorder rounded py-2.5 px-3 text-zinc-200 focus:outline-none focus:border-accent/50 font-mono text-sm transition-colors" autocomplete="off">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-2">Passcode</label>
+                <input type="password" id="password" placeholder="••••••"
+                    class="w-full bg-opsBg border border-opsBorder rounded py-2.5 px-3 text-zinc-200 focus:outline-none focus:border-accent/50 font-mono text-sm transition-colors">
+            </div>
+            <div id="login-error" class="hidden text-[11px] font-mono text-critical text-center">Invalid credentials. Try again.</div>
+            <div id="login-status" class="hidden text-[11px] font-mono text-accent text-center animate-pulse">Authenticating secure connection...</div>
+            <button onclick="handleLogin()"
+                class="w-full bg-accent hover:bg-indigo-500 text-white font-medium py-2.5 rounded transition-colors shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                Initialize Terminal
+            </button>
+        </div>
+        <p class="text-[9px] text-zinc-600 font-mono text-center mt-6">SUDARSHAN GEARS // INTERNAL SYSTEM // v2.0</p>
+    </div>
+</div>
+ 
+<div id="selection-view" class="hidden h-full w-full flex-col items-center justify-center p-8 relative z-10">
+    <div class="text-center mb-10">
+        <div id="role-badge" class="inline-block px-3 py-1 rounded-full border border-opsBorder text-[10px] font-mono text-zinc-500 mb-4 uppercase tracking-widest"></div>
+        <h1 class="text-3xl font-semibold text-white mb-2">OpsPilot Assembly Command</h1>
+        <p class="text-zinc-400 font-mono text-xs uppercase tracking-widest">Select Target Assembly for Telemetry</p>
+    </div>
+    <div id="gearbox-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
+        <div class="col-span-3 text-center text-zinc-500 font-mono animate-pulse">Establishing Live Feed...</div>
+    </div>
+    <button onclick="handleLogout()" class="mt-8 text-[10px] font-mono text-zinc-600 hover:text-zinc-400 transition-colors">← Logout</button>
+</div>
+ 
+<div id="dashboard-view" class="hidden h-full w-full flex-col">
+    <header class="h-14 bg-opsSurface border-b border-opsBorder flex items-center px-6 shrink-0 z-20 gap-4">
+        <button id="back-btn" onclick="backToSelection()" class="w-8 h-8 rounded hover:bg-opsBorder text-zinc-400 hover:text-white transition-colors flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </button>
+        <div class="h-6 w-px bg-opsBorder"></div>
+        <div>
+            <p class="text-[10px] text-zinc-500 font-mono uppercase tracking-widest leading-tight">Sudarshan Gears // OpsPilot</p>
+            <h1 id="dashboard-title" class="font-semibold text-white leading-tight">Loading...</h1>
+        </div>
+        <div class="ml-auto flex items-center gap-4">
+            <span id="role-indicator" class="text-[10px] font-mono px-2.5 py-1 rounded border border-opsBorder text-zinc-400 uppercase"></span>
+            <span class="px-2.5 py-1 rounded border border-success/20 bg-success/10 text-success font-mono text-[10px] flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> LIVE
+            </span>
+            <button id="log-event-btn" onclick="openLogModal()" class="hidden text-[10px] font-mono px-3 py-1.5 rounded border border-accent/30 bg-accent/10 text-accent hover:bg-accent/20 transition-colors">+ Log Event</button>
+            <button onclick="handleLogout()" class="text-[10px] font-mono text-zinc-600 hover:text-zinc-400 transition-colors">Logout</button>
+        </div>
+    </header>
+ 
+    <div class="flex-1 flex overflow-hidden">
+        <main class="flex-1 overflow-y-auto p-6">
+            <div id="dashboard-content"></div>
+        </main>
+ 
+        <aside class="w-96 border-l border-opsBorder bg-opsBg flex flex-col shrink-0">
+            <div class="bg-opsSurface border-b border-opsBorder px-4 py-3 flex items-center justify-between">
+                <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    OpsPilot AI
+                </span>
+                <span id="ai-role-badge" class="text-[9px] font-mono px-1.5 py-0.5 rounded border"></span>
+            </div>
+            <div id="quick-actions" class="flex flex-wrap gap-2 p-3 border-b border-opsBorder bg-opsSurface"></div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div>
+                    <div class="bg-opsSurface border border-opsBorder rounded-lg rounded-tl-none p-3 text-zinc-300 text-sm max-w-[90%] leading-relaxed">
+                        <span id="ai-welcome-msg">System online.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 border-t border-opsBorder bg-opsSurface">
+                <div class="relative flex items-center">
+                    <input type="text" id="chat-input" placeholder="Ask OpsPilot..."
+                        class="w-full bg-opsBg border border-opsBorder rounded py-2.5 pl-3 pr-10 text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-accent/50 text-sm font-mono transition-colors"
+                        autocomplete="off">
+                    <button onclick="sendMessage()" class="absolute right-2 text-zinc-500 hover:text-accent transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+ 
+<script>
+const API = 'http://localhost:8000';
+ 
+const USERS = {
+    'OWNER':   { password: 'SG2026', role: 'owner',   label: 'Factory Owner' },
+    'MANAGER': { password: 'SG2026', role: 'manager', label: 'Factory Manager' },
+    'QC':      { password: 'SG2026', role: 'qc',      label: 'QC Inspector' }
+};
+ 
+const ROLE_CONFIG = {
+    owner: {
+        badge: 'Owner View',
+        badgeColor: 'border-warning/30 bg-warning/10 text-warning',
+        aiLabel: 'STRATEGIC MODE',
+        aiLabelColor: 'border-warning/30 bg-warning/10 text-warning',
+        welcome: 'Good day. I am analysing revenue risk, customer health and vendor reliability for Sudarshan Gears. What would you like to know?',
+        quickActions: [
+            { label: 'Revenue at Risk', q: 'How much revenue is at risk today due to delayed orders and idle machines? Calculate in rupees.' },
+            { label: 'Customer Health', q: 'Which customers are most at risk due to current production delays?' },
+            { label: 'Vendor Reliability', q: 'Rank all vendors by reliability and damage caused by their delays.' },
+            { label: 'On-Time Rate', q: 'What is our on-time delivery rate this month?' },
+            { label: 'New Order Capacity', q: 'Can we take a new gearbox order for delivery by August 1?' },
+            { label: 'Cost of Idle', q: 'How much is idle machine time costing us today in rupees at Rs 500 per hour?' }
+        ]
+    },
+    manager: {
+        badge: 'Manager View',
+        badgeColor: 'border-accent/30 bg-accent/10 text-accent',
+        aiLabel: 'OPERATIONS MODE',
+        aiLabelColor: 'border-accent/30 bg-accent/10 text-accent',
+        welcome: 'System locked on. I am monitoring all active assemblies, machines and vendor deliveries. What needs your attention?',
+        quickActions: [
+            { label: 'Morning Briefing', q: 'Give me the morning operations briefing — critical alerts, priorities and action items.' },
+            { label: 'Priority List', q: 'What are my top 3 priorities right now in order of urgency?' },
+            { label: 'Idle Machines', q: 'Which machines are idle and what is causing each one to be idle?' },
+            { label: 'Vendor Delays', q: 'Which vendor delay is causing the most damage to production right now?' },
+            { label: 'Delayed Jobs', q: 'Which jobs are delayed and what is blocking each one?' },
+            { label: 'Shift Handover', q: 'Generate the shift handover brief for the night shift.' },
+            { label: 'Ripple Effect', q: 'If the most delayed vendor does not deliver this week, which gearboxes miss their deadline and what is the total revenue at risk?' },
+            { label: 'Draft Vendor Message', q: 'Draft a professional WhatsApp message to the most delayed vendor mentioning exact days late, which jobs are affected, and requesting urgent confirmation of new delivery date.' }
+        ]
+    },
+    qc: {
+        badge: 'QC Inspector View',
+        badgeColor: 'border-blue-400/30 bg-blue-400/10 text-blue-400',
+        aiLabel: 'QUALITY MODE',
+        aiLabelColor: 'border-blue-400/30 bg-blue-400/10 text-blue-400',
+        welcome: 'QC Terminal active. I have full defect history for all parts. What are you inspecting today?',
+        quickActions: [
+            { label: 'Repeat Defects', q: 'Are there any repeat defects I should be aware of right now?' },
+            { label: 'Inspect Spur Gear', q: 'What should I look for when inspecting SG-G-001 Spur Gear? Any history?' },
+            { label: 'Inspect Drive Shaft', q: 'What should I look for when inspecting SG-S-001 Drive Shaft?' },
+            { label: 'Defect History', q: 'Give me the complete defect history for all parts.' },
+            { label: 'Most Rejected Stage', q: 'Which production stage has produced the most rejections?' },
+            { label: 'Quality Report', q: 'Generate this week\'s quality inspection summary report.' }
+        ]
+    }
+};
+ 
+let currentRole = null;
+let currentGearboxContext = null;
+let globalData = null;
+let chatHistory = []; // running conversation for the current chat session
+ 
+// ── LOGIN ──
+function handleLogin() {
+    const id = document.getElementById('userid').value.trim().toUpperCase();
+    const pass = document.getElementById('password').value.trim();
+    const error = document.getElementById('login-error');
+    const status = document.getElementById('login-status');
+    error.classList.add('hidden');
+ 
+    if (!USERS[id] || USERS[id].password !== pass) {
+        error.classList.remove('hidden');
+        return;
+    }
+ 
+    currentRole = USERS[id].role;
+    status.classList.remove('hidden');
+ 
+    setTimeout(async () => {
+        await fetchData();
+        setupRoleUI();
+ 
+        if (currentRole === 'manager') {
+            renderLobby(); // <-- FIX #1: Added renderLobby() here so it isn't empty!
+            switchView('login-view', 'selection-view');
+        } else {
+            switchView('login-view', 'dashboard-view');
+            renderDashboard();
+        }
+    }, 800);
+}
+ 
+function handleLogout() {
+    currentRole = null;
+    currentGearboxContext = null;
+    globalData = null;
+    switchView(
+        document.getElementById('dashboard-view').classList.contains('hidden') ? 'selection-view' : 'dashboard-view',
+        'login-view'
+    );
+    document.getElementById('userid').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login-status').classList.add('hidden');
+    document.getElementById('login-error').classList.add('hidden');
+    resetChat();
+}
+ 
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('login-view').classList.contains('hidden')) handleLogin();
+});
+ 
+// ── ROLE UI ──
+function setupRoleUI() {
+    const cfg = ROLE_CONFIG[currentRole];
+    const userLabel = Object.values(USERS).find(u => u.role === currentRole)?.label || '';
+ 
+    document.getElementById('role-badge').textContent = `Logged in as: ${userLabel}`;
+    document.getElementById('role-indicator').textContent = cfg.badge;
+ 
+    const aiBadge = document.getElementById('ai-role-badge');
+    aiBadge.textContent = cfg.aiLabel;
+    aiBadge.className = `text-[9px] font-mono px-1.5 py-0.5 rounded border ${cfg.aiLabelColor}`;
+ 
+    document.getElementById('ai-welcome-msg').textContent = cfg.welcome;
+ 
+    // Back button — only show for manager
+    document.getElementById('back-btn').style.display = currentRole === 'manager' ? 'flex' : 'none';
+ 
+    const qa = document.getElementById('quick-actions');
+    qa.innerHTML = cfg.quickActions.map(a =>
+        `<button class="quick-btn" onclick="sendQuick('${a.q.replace(/'/g, "\\'")}')">${a.label}</button>`
+    ).join('');
+    showLogButtonForRole();
+}
+ 
+// ── VIEW SWITCHING ──
+function switchView(fromId, toId) {
+    const from = document.getElementById(fromId);
+    const to = document.getElementById(toId);
+    from.classList.replace('page-enter', 'page-exit');
+    setTimeout(() => {
+        from.classList.add('hidden');
+        from.classList.remove('flex', 'page-exit', 'page-enter');
+        to.classList.remove('hidden');
+        to.classList.add('flex', 'page-enter');
+    }, 300);
+}
+ 
+function backToSelection() {
+    currentGearboxContext = null;
+    document.getElementById('dashboard-title').textContent = 'Select Assembly';
+    switchView('dashboard-view', 'selection-view');
+    resetChat();
+}
+ 
+// ── DATA ──
+async function fetchData() {
+    try {
+        const res = await fetch(`${API}/api/dashboard`);
+        globalData = await res.json();
+    } catch(e) {
+        console.error('Data fetch failed:', e);
+    }
+}
+ 
+// ── DATE PARSER ──
+function parseDate(str) {
+    if (!str) return null;
+    const s = str.toString().trim();
+    if (s.includes('T') || s.match(/^\d{4}-\d{2}-\d{2}/)) return new Date(s);
+    const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const parts = s.split('-');
+    if (parts.length === 3 && isNaN(parts[1]))
+        return new Date(parseInt(parts[2]), months[parts[1]], parseInt(parts[0]));
+    return new Date(s);
+}
+ 
+function formatDate(str) {
+    if (!str) return 'N/A';
+    const d = parseDate(str.toString());
+    if (!d || isNaN(d)) return str.toString();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${String(d.getDate()).padStart(2,'0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
+ 
+function getStatus(status, dateStr = null) {
+    if (dateStr) {
+        const d = parseDate(dateStr);
+        const today = new Date(); today.setHours(0,0,0,0);
+        if (d && d < today && !['Completed','Delivered'].includes(status))
+            return { label: 'OVERDUE', cls: 'border-critical/40 bg-critical/10 text-critical' };
+    }
+    const s = (status||'').toLowerCase();
+    if (['running','on track','completed','delivered','on time'].includes(s))
+        return { label: status, cls: 'border-success/30 bg-success/10 text-success' };
+    if (['delayed','maintenance','idle'].includes(s))
+        return { label: status, cls: 'border-warning/30 bg-warning/10 text-warning' };
+    if (['low','exhausted','breakdown'].includes(s))
+        return { label: status, cls: 'border-critical/30 bg-critical/10 text-critical' };
+    return { label: status, cls: 'border-opsBorder bg-opsBg text-zinc-400' };
+}
+ 
+// ── LOBBY (Manager only) ──
+function renderLobby() {
+    const grid = document.getElementById('gearbox-grid');
+    const gearboxes = globalData?.gearbox_assembly || [];
+    if (!gearboxes.length) {
+        grid.innerHTML = `<div class="col-span-3 text-center text-zinc-500 font-mono">No assemblies found.</div>`;
+        return;
+    }
+    grid.innerHTML = gearboxes.map(gb => {
+        const s = getStatus(gb.Status, gb.Delivery_Date);
+        const isOverdue = s.label === 'OVERDUE';
+        return `
+        <button onclick="loadGearboxDashboard('${gb.Gearbox_ID}')"
+            class="glass-card rounded-2xl p-6 text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-accent relative overflow-hidden">
+            ${isOverdue ? '<div class="absolute top-0 right-0 w-20 h-20 bg-critical/10 blur-xl rounded-full pointer-events-none"></div>' : ''}
+            <div class="flex justify-between items-start mb-4">
+                <span class="px-2.5 py-1 rounded-full border ${s.cls} font-mono text-[10px] uppercase">${s.label}</span>
+                <span class="text-zinc-600 font-mono text-xs">${gb.Gearbox_ID}</span>
+            </div>
+            <h3 class="text-xl font-medium text-white mb-1">${gb.Gearbox_Name}</h3>
+            <p class="text-zinc-500 text-sm mb-4">
+                Customer: <span class="text-zinc-300">${gb.Customer_Name}</span><br>
+                Delivery: <span class="${isOverdue ? 'text-critical font-medium' : 'text-zinc-300'}">${formatDate(gb.Delivery_Date)}</span>
+            </p>
+            <p class="text-[10px] text-zinc-600 font-mono pt-4 border-t border-opsBorder/50 mt-auto">${gb.Notes||''}</p>
+        </button>`;
+    }).join('');
+}
+ 
+// ── RENDER DASHBOARD BY ROLE ──
+function renderDashboard() {
+    if (currentRole === 'owner') renderOwnerDashboard();
+    else if (currentRole === 'qc') renderQCDashboard();
+}
+ 
+// ══════════════════════════════════════
+// OWNER DASHBOARD
+// ══════════════════════════════════════
+function renderOwnerDashboard() {
+    document.getElementById('dashboard-title').textContent = 'Business Overview';
+    const d = globalData;
+    if (!d) return;
+ 
+    const jobs = d.production_jobs || [];
+    const machines = d.machines || [];
+    const vendors = d.vendors || [];
+ 
+    // Revenue calculations
+    const delayedJobs = jobs.filter(j => {
+        const s = getStatus(j.Status, j.End_Date);
+        return s.label === 'OVERDUE' || j.Status === 'Delayed';
+    });
+    const revenueAtRisk = delayedJobs.reduce((sum, j) => sum + (parseFloat(j.Unit_Price) || 0), 0);
+ 
+    const completedJobs = jobs.filter(j => j.Status === 'Completed');
+    const totalJobs = jobs.length;
+    const onTimeRate = totalJobs > 0 ? Math.round((completedJobs.length / totalJobs) * 100) : 0;
+ 
+    const idleMachines = machines.filter(m => m.Current_Status === 'Idle');
+    const totalIdleHours = idleMachines.reduce((sum, m) => sum + (parseFloat(m.Idle_Hours) || 0), 0);
+    const idleCost = Math.round(totalIdleHours * 500);
+ 
+    const delayedVendors = vendors.filter(v => {
+        const vs = getStatus(v.Reliability_Score, v.Expected_Delivery);
+        return vs.label === 'OVERDUE' || v.Reliability_Score === 'Delayed';
+    });
+ 
+    // Customer risk
+    const customerRisk = {};
+    delayedJobs.forEach(j => {
+        if (!customerRisk[j.Customer_Name]) customerRisk[j.Customer_Name] = { jobs: 0, revenue: 0 };
+        customerRisk[j.Customer_Name].jobs++;
+        customerRisk[j.Customer_Name].revenue += parseFloat(j.Unit_Price) || 0;
+    });
+ 
+    document.getElementById('dashboard-content').innerHTML = `
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="stat-card red">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Revenue at Risk</div>
+                <div class="text-2xl font-bold text-critical">₹${revenueAtRisk.toLocaleString('en-IN')}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">${delayedJobs.length} delayed order(s)</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Idle Machine Cost</div>
+                <div class="text-2xl font-bold text-warning">₹${idleCost.toLocaleString('en-IN')}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">${totalIdleHours.toFixed(1)} hrs idle today</div>
+            </div>
+            <div class="stat-card green">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">On-Time Rate</div>
+                <div class="text-2xl font-bold text-success">${onTimeRate}%</div>
+                <div class="text-[11px] text-zinc-500 mt-1">${completedJobs.length} of ${totalJobs} jobs</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Vendor Issues</div>
+                <div class="text-2xl font-bold text-accent">${delayedVendors.length}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">of ${vendors.length} vendors delayed</div>
+            </div>
+        </div>
+ 
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-critical"></div> Customer Risk Assessment
+                    </span>
+                </div>
+                <div class="p-4">
+                    ${Object.keys(customerRisk).length ? Object.entries(customerRisk).map(([name, info]) => `
+                        <div class="flex justify-between items-center py-3 border-b border-opsBorder/50 last:border-0">
+                            <div>
+                                <div class="text-sm font-medium text-zinc-200">${name}</div>
+                                <div class="text-[11px] text-zinc-500 font-mono mt-0.5">${info.jobs} order(s) at risk</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-critical">₹${info.revenue.toLocaleString('en-IN')}</div>
+                                <div class="text-[10px] text-zinc-600 font-mono">at risk</div>
+                            </div>
+                        </div>`).join('')
+                    : `<div class="py-4 text-center text-xs font-mono text-success">✓ No customers at risk</div>`}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-warning"></div> Vendor Reliability
+                    </span>
+                </div>
+                <div class="p-1">
+                    ${vendors.map(v => {
+                        const s = getStatus(v.Reliability_Score, v.Expected_Delivery);
+                        return `
+                        <div class="flex justify-between items-center p-3 border-b border-opsBorder/50 last:border-0 hover:bg-opsBg transition-colors">
+                            <div>
+                                <div class="text-sm font-medium text-zinc-200">${v.Vendor_Name}</div>
+                                <div class="text-[11px] text-zinc-500 font-mono">${v.Supply_Type}</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-2 py-0.5 rounded border ${s.cls} text-[10px] font-mono">${s.label}</span>
+                                <div class="text-[10px] text-zinc-600 mt-1">Due: ${v.Expected_Delivery}</div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-accent"></div> Order Status
+                    </span>
+                </div>
+                <div class="p-1">
+                    ${jobs.map(j => {
+                        const s = getStatus(j.Status, j.End_Date);
+                        const price = parseFloat(j.Unit_Price) || 0;
+                        return `
+                        <div class="flex justify-between items-center p-3 border-b border-opsBorder/50 last:border-0 hover:bg-opsBg transition-colors">
+                            <div>
+                                <div class="text-sm font-medium text-zinc-200">${j.Part_Name}
+                                    <span class="text-[10px] font-mono text-zinc-600 ml-1">${j.Job_ID}</span>
+                                </div>
+                                <div class="text-[11px] text-zinc-500">Customer: ${j.Customer_Name}</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-2 py-0.5 rounded border ${s.cls} text-[10px] font-mono">${s.label}</span>
+                                <div class="text-[11px] text-zinc-500 mt-1">₹${price.toLocaleString('en-IN')}</div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div> Ready to Dispatch
+                    </span>
+                </div>
+                <div class="p-4">
+                    ${completedJobs.length ? completedJobs.map(j => `
+                        <div class="flex justify-between items-center py-3 border-b border-opsBorder/50 last:border-0">
+                            <div>
+                                <div class="text-sm font-medium text-zinc-200">${j.Part_Name}</div>
+                                <div class="text-[11px] text-zinc-500">Customer: ${j.Customer_Name}</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-2 py-0.5 rounded border border-success/30 bg-success/10 text-success text-[10px] font-mono">READY</span>
+                                <div class="text-[11px] text-zinc-500 mt-1">₹${(parseFloat(j.Unit_Price)||0).toLocaleString('en-IN')}</div>
+                            </div>
+                        </div>`).join('')
+                    : `<div class="py-4 text-center text-xs font-mono text-zinc-600">No completed orders yet</div>`}
+                </div>
+            </div>
+        </div>
+    `;
+}
+ 
+// ══════════════════════════════════════
+// MANAGER GEARBOX DASHBOARD
+// ══════════════════════════════════════
+function loadGearboxDashboard(gearboxId) {
+    const gb = globalData.gearbox_assembly.find(g => g.Gearbox_ID === gearboxId);
+    if (!gb) return;
+ 
+    currentGearboxContext = `Currently viewing: ${gb.Gearbox_ID} (${gb.Gearbox_Name}) — Customer: ${gb.Customer_Name} — Delivery: ${gb.Delivery_Date} — Status: ${gb.Status}`;
+    document.getElementById('dashboard-title').textContent = gb.Gearbox_Name;
+ 
+    const jobIds = gb.Part_Job_IDs.split(',').map(id => id.trim());
+    const jobs = globalData.production_jobs.filter(j => jobIds.includes(j.Job_ID));
+    const machines = globalData.machines.filter(m => jobIds.includes(m.Current_Job_ID));
+    const ALL_STAGES = ['Raw Material','Machining','Teeth Cutting','Hardening','Grinding'];
+ 
+    const jobsHTML = jobs.map(job => {
+        let idx = 0;
+        const stage = job.Current_Stage || '';
+        if (stage.includes('Stage 2') || stage.includes('Machining')) idx = 1;
+        else if (stage.includes('Stage 3') || stage.includes('Teeth')) idx = 2;
+        else if (stage.includes('Stage 4') || stage.includes('Hardening')) idx = 3;
+        else if (stage.includes('Stage 5') || stage.includes('Grinding') || job.Status === 'Completed') idx = 4;
+ 
+        const timeline = ALL_STAGES.map((s, i) => {
+            const done = i < idx || job.Status === 'Completed';
+            const active = i === idx && job.Status !== 'Completed';
+            const bar = done ? 'bg-success' : active ? 'bg-accent animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-opsBorder';
+            const txt = done ? 'text-success' : active ? 'text-white font-medium' : 'text-zinc-600';
+            return `<div class="flex-1 flex flex-col gap-1">
+                <div class="h-1.5 w-full rounded-full ${bar}"></div>
+                <span class="text-[9px] font-mono uppercase ${txt} truncate">${s.split(' ')[0]}</span>
+            </div>`;
+        }).join('');
+ 
+        const st = getStatus(job.Status, job.End_Date);
+        return `
+        <div class="p-4 rounded-lg bg-opsBg border ${st.label==='OVERDUE'?'border-critical/30':'border-opsBorder/50'} mb-3 last:mb-0 hover:border-accent/30 transition-colors">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <span class="text-sm text-zinc-100 font-medium">${job.Part_Name}</span>
+                    <span class="text-[10px] text-zinc-500 font-mono ml-2 border border-opsBorder px-1.5 py-0.5 rounded">${job.Job_ID}</span>
+                    <p class="text-[10px] text-zinc-500 font-mono mt-1">Assigned: ${job.Assigned_To}</p>
+                </div>
+                <div class="text-right">
+                    <span class="px-2 py-0.5 rounded border ${st.cls} text-[10px] font-mono uppercase">${st.label}</span>
+                    <p class="text-[10px] ${st.label==='OVERDUE'?'text-critical':'text-accent'} font-mono mt-1.5">ETA: ${job.End_Date}</p>
+                </div>
+            </div>
+            <div class="flex gap-1 w-full">${timeline}</div>
+        </div>`;
+    }).join('');
+ 
+    const machinesHTML = machines.length ? machines.map(m => {
+        const st = getStatus(m.Current_Status);
+        return `
+        <div class="flex justify-between items-center p-3 border-b border-opsBorder/50 last:border-0 hover:bg-opsBg transition-colors">
+            <div>
+                <p class="text-sm text-zinc-200 font-medium">${m.Machine_Name}
+                    <span class="text-[10px] text-zinc-500 font-mono ml-2 border border-opsBorder px-1.5 py-0.5 rounded">${m.Machine_ID}</span>
+                </p>
+                <p class="text-[10px] text-zinc-500 font-mono mt-1">Job: ${m.Current_Job_ID} | Op: ${m.Operator_Name}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                ${m.Current_Status==='Running'?'<span class="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_6px_#10B981]"></span>':''}
+                <span class="px-2.5 py-1 rounded border ${st.cls} text-[10px] font-mono uppercase">${st.label}</span>
+            </div>
+        </div>`;
+    }).join('') : `<div class="p-4 text-xs font-mono text-zinc-600 text-center">No machines allocated to this assembly.</div>`;
+ 
+    const alerts = globalData.alerts || {};
+    const allAlerts = [
+        ...(alerts.reorder||[]).map(a=>({type:'REORDER',msg:a.message,cls:'border-warning/30 bg-warning/10 text-warning'})),
+        ...(alerts.vendor_delays||[]).map(a=>({type:'VENDOR',msg:a.message,cls:'border-critical/30 bg-critical/10 text-critical'})),
+        ...(alerts.idle_machines||[]).map(a=>({type:'IDLE',msg:a.message,cls:'border-warning/30 bg-warning/10 text-warning'}))
+    ];
+ 
+    const alertsHTML = allAlerts.length
+        ? allAlerts.map(a=>`<div class="flex gap-2 items-start p-3 rounded border ${a.cls} text-xs mb-2 last:mb-0"><span class="font-mono font-bold shrink-0">${a.type}</span><span>${a.msg}</span></div>`).join('')
+        : `<div class="p-3 text-xs font-mono text-success border border-success/20 bg-success/10 rounded">✓ No active alerts</div>`;
+ 
+    document.getElementById('dashboard-content').innerHTML = `
+        <div class="space-y-4">
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-critical"></div> Active Alerts
+                    </span>
+                </div>
+                <div class="p-4">${alertsHTML}</div>
+            </div>
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-accent"></div> Parts & Sub-Assemblies
+                    </span>
+                </div>
+                <div class="p-4">${jobsHTML}</div>
+            </div>
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div> Machine Allocations
+                    </span>
+                </div>
+                <div>${machinesHTML}</div>
+            </div>
+        </div>`;
+ 
+    switchView('selection-view', 'dashboard-view');
+}
+ 
+// ══════════════════════════════════════
+// QC DASHBOARD
+// ══════════════════════════════════════
+function renderQCDashboard() {
+    document.getElementById('dashboard-title').textContent = 'Quality Control Center';
+    const d = globalData;
+    if (!d) return;
+ 
+    const qualityLog = d.quality_log || [];
+    const jobs = d.production_jobs || [];
+ 
+    // Stats
+    const totalInspections = qualityLog.length;
+    const rejected = qualityLog.filter(q => q.Decision === 'Rejected').length;
+    const reworked = qualityLog.filter(q => q.Decision === 'Rework').length;
+    const passed = qualityLog.filter(q => q.Decision === 'Passed' || q.Decision === 'Accepted').length;
+    const passRate = totalInspections > 0 ? Math.round((passed / totalInspections) * 100) : 0;
+ 
+    // Repeat defects — same part more than once
+    const partDefects = {};
+    qualityLog.forEach(q => {
+        const key = q.Part_Code || q.Part_Name;
+        if (!partDefects[key]) partDefects[key] = { name: q.Part_Name, code: q.Part_Code, count: 0, defects: [] };
+        partDefects[key].count++;
+        partDefects[key].defects.push(q.Defect_Type);
+    });
+    const repeatDefects = Object.values(partDefects).filter(p => p.count >= 2);
+ 
+    // Parts currently at inspection stage
+    const atInspection = jobs.filter(j =>
+        j.Current_Stage && (j.Current_Stage.includes('Quality') || j.Current_Stage.includes('Grinding') || j.Current_Stage.includes('Stage 5'))
+    );
+ 
+    // Stage with most defects
+    const stageDefects = {};
+    qualityLog.forEach(q => {
+        const s = q.Stage_Found || 'Unknown';
+        stageDefects[s] = (stageDefects[s] || 0) + 1;
+    });
+    const worstStage = Object.entries(stageDefects).sort((a,b) => b[1]-a[1])[0];
+ 
+    document.getElementById('dashboard-content').innerHTML = `
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="stat-card blue">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Total Inspections</div>
+                <div class="text-2xl font-bold text-accent">${totalInspections}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">All time</div>
+            </div>
+            <div class="stat-card green">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Pass Rate</div>
+                <div class="text-2xl font-bold text-success">${passRate}%</div>
+                <div class="text-[11px] text-zinc-500 mt-1">${passed} passed</div>
+            </div>
+            <div class="stat-card red">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Rejected</div>
+                <div class="text-2xl font-bold text-critical">${rejected}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">Hard rejections</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Sent for Rework</div>
+                <div class="text-2xl font-bold text-warning">${reworked}</div>
+                <div class="text-[11px] text-zinc-500 mt-1">Rework orders</div>
+            </div>
+        </div>
+ 
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-critical"></div> Repeat Defect Alerts
+                    </span>
+                </div>
+                <div class="p-4">
+                    ${repeatDefects.length ? repeatDefects.map(p => `
+                        <div class="p-3 rounded-lg border border-critical/20 bg-critical/5 mb-3 last:mb-0">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <span class="text-sm font-medium text-zinc-200">${p.name}</span>
+                                    <span class="text-[10px] font-mono text-zinc-600 ml-2">${p.code}</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded border border-critical/30 bg-critical/10 text-critical text-[10px] font-mono">${p.count}x DEFECT</span>
+                            </div>
+                            <div class="text-[11px] text-zinc-500">Types: ${[...new Set(p.defects)].join(', ')}</div>
+                            <div class="text-[10px] text-critical mt-1 font-mono">⚠ REPEAT — Recommend process review</div>
+                        </div>`).join('')
+                    : `<div class="py-4 text-center text-xs font-mono text-success">✓ No repeat defects detected</div>`}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div> Inspection Log
+                    </span>
+                </div>
+                <div class="overflow-y-auto max-h-64">
+                    ${qualityLog.length ? qualityLog.map(q => {
+                        const decCls = q.Decision === 'Passed' || q.Decision === 'Accepted'
+                            ? 'border-success/30 bg-success/10 text-success'
+                            : q.Decision === 'Rework'
+                            ? 'border-warning/30 bg-warning/10 text-warning'
+                            : 'border-critical/30 bg-critical/10 text-critical';
+                        return `
+                        <div class="flex justify-between items-start p-3 border-b border-opsBorder/50 last:border-0 hover:bg-opsBg transition-colors">
+                            <div>
+                                <div class="text-sm font-medium text-zinc-200">${q.Part_Name}
+                                    <span class="text-[10px] font-mono text-zinc-600 ml-1">${q.Part_Code}</span>
+                                </div>
+                                <div class="text-[11px] text-zinc-500 mt-0.5">${q.Defect_Type}</div>
+                                <div class="text-[10px] text-zinc-600 font-mono">${q.Stage_Found} // ${q.Date}</div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded border ${decCls} text-[10px] font-mono shrink-0 ml-2">${q.Decision}</span>
+                        </div>`;
+                    }).join('')
+                    : `<div class="p-4 text-center text-xs font-mono text-zinc-600">No inspections logged yet</div>`}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-warning"></div> Defects by Stage
+                    </span>
+                </div>
+                <div class="p-4">
+                    ${Object.entries(stageDefects).sort((a,b)=>b[1]-a[1]).map(([stage, count]) => {
+                        const pct = Math.round((count / totalInspections) * 100);
+                        return `
+                        <div class="mb-3 last:mb-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-zinc-300">${stage}</span>
+                                <span class="text-xs font-mono text-zinc-500">${count} defect(s)</span>
+                            </div>
+                            <div class="h-1.5 bg-opsBg rounded-full overflow-hidden">
+                                <div class="h-full rounded-full bg-warning" style="width:${pct}%"></div>
+                            </div>
+                        </div>`;
+                    }).join('') || `<div class="text-center text-xs font-mono text-zinc-600 py-4">No defect stage data</div>`}
+                </div>
+            </div>
+ 
+            <div class="bg-opsSurface border border-opsBorder rounded-xl overflow-hidden">
+                <div class="bg-[#1C1C1F] border-b border-opsBorder px-4 py-3">
+                    <span class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-accent"></div> Common Defect Types
+                    </span>
+                </div>
+                <div class="p-4">
+                    ${(() => {
+                        const types = {};
+                        qualityLog.forEach(q => { types[q.Defect_Type] = (types[q.Defect_Type]||0)+1; });
+                        return Object.entries(types).sort((a,b)=>b[1]-a[1]).map(([type, count]) => {
+                            const pct = Math.round((count/totalInspections)*100);
+                            return `
+                            <div class="mb-3 last:mb-0">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-zinc-300">${type}</span>
+                                    <span class="text-xs font-mono text-zinc-500">${count}x</span>
+                                </div>
+                                <div class="h-1.5 bg-opsBg rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full bg-accent" style="width:${pct}%"></div>
+                                </div>
+                            </div>`;
+                        }).join('') || `<div class="text-center text-xs font-mono text-zinc-600 py-4">No defect data</div>`;
+                    })()}
+                </div>
+            </div>
+        </div>
+    `;
+}
+ 
+// ── INIT after login ──
+async function fetchDashboard() {
+    await fetchData();
+    renderLobby();
+}
+ 
+// ── CHAT ──
+function resetChat() {
+    chatHistory = [];
+    document.getElementById('chat-messages').innerHTML = `
+        <div class="flex gap-3">
+            <div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div>
+            <div class="bg-opsSurface border border-opsBorder rounded-lg rounded-tl-none p-3 text-zinc-300 text-sm max-w-[90%] leading-relaxed">
+                <span id="ai-welcome-msg">${currentRole ? ROLE_CONFIG[currentRole].welcome : 'System online.'}</span>
+            </div>
+        </div>`;
+}
+ 
+async function executeUpdate(updateJSON) {
+    try {
+        const payload = JSON.parse(updateJSON);
+        const res = await fetch(`${API}/api/update-sheet`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sheet_name: payload.sheet,
+                id_column: payload.id_col,
+                id_value: payload.id_val,
+                update_column: payload.col,
+                new_value: payload.val
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Refresh dashboard data
+            await fetchData();
+            if (currentRole === 'owner') renderOwnerDashboard();
+            else if (currentRole === 'qc') renderQCDashboard();
+            return '✅ Sheet updated successfully. Dashboard refreshed.';
+        } else {
+            return `❌ Update failed: ${data.error}`;
+        }
+    } catch(e) {
+        return `❌ Update error: ${e.message}`;
+    }
+}
+ 
+function appendMsg(role, html) {
+    const isUser = role === 'user';
+    const box = document.getElementById('chat-messages');
+ 
+    if (!isUser) {
+        // Check for UPDATE block in AI response
+        const updateMatch = html.match(/\[UPDATE:\s*(\{.*?\})\]/s);
+        if (updateMatch) {
+            // Remove the UPDATE block from displayed text
+            const cleanHtml = html.replace(/\[UPDATE:\s*\{.*?\}\]/s, '').trim();
+            const updateJSON = updateMatch[1];
+ 
+            // Show the message
+            box.insertAdjacentHTML('beforeend', `
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div>
+                    <div class="bg-opsSurface border border-opsBorder rounded-lg rounded-tl-none p-3 text-zinc-300 text-sm max-w-[90%] leading-relaxed">
+                        ${cleanHtml.replace(/\n/g,'<br>')}
+                        <div class="mt-3 pt-3 border-t border-opsBorder">
+                            <span class="text-[11px] font-mono text-success animate-pulse">⚡ Executing update...</span>
+                        </div>
+                    </div>
+                </div>`);
+            box.scrollTop = box.scrollHeight;
+ 
+            // Execute update and show result
+            executeUpdate(updateJSON).then(result => {
+                box.insertAdjacentHTML('beforeend', `
+                    <div class="flex gap-3">
+                        <div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div>
+                        <div class="bg-opsSurface border border-success/20 rounded-lg rounded-tl-none p-3 text-success text-sm max-w-[90%] leading-relaxed font-mono">
+                            ${result}
+                        </div>
+                    </div>`);
+                box.scrollTop = box.scrollHeight;
+            });
+            return;
+        }
+    }
+ 
+    box.insertAdjacentHTML('beforeend', isUser
+        ? `<div class="flex gap-3 flex-row-reverse"><div class="bg-accent text-white rounded-lg rounded-tr-none p-3 max-w-[85%] text-sm leading-relaxed">${html}</div></div>`
+        : `<div class="flex gap-3"><div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div><div class="bg-opsSurface border border-opsBorder rounded-lg rounded-tl-none p-3 text-zinc-300 text-sm max-w-[90%] leading-relaxed">${html}</div></div>`
+    );
+    box.scrollTop = box.scrollHeight;
+}
+ 
+function showTyping() {
+    const id = 'typing-' + Date.now();
+    const box = document.getElementById('chat-messages');
+    box.insertAdjacentHTML('beforeend', `
+        <div id="${id}" class="flex gap-3">
+            <div class="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-[10px] shrink-0 mt-1">OP</div>
+            <div class="bg-opsSurface border border-opsBorder rounded-lg p-4 flex items-center gap-1">
+                <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+            </div>
+        </div>`);
+    box.scrollTop = box.scrollHeight;
+    return id;
+}
+ 
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    appendMsg('user', msg);
+    const typingId = showTyping();
+    try {
+        const res = await fetch(`${API}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: msg,
+                gearbox_context: currentGearboxContext,
+                role: currentRole,
+                history: chatHistory
+            })
+        });
+        const data = await res.json();
+        document.getElementById(typingId)?.remove();
+        appendMsg('bot', data.response.replace(/\n/g,'<br>'));
+
+        // Record this turn so the AI remembers it next message (e.g. a
+        // pending "Confirm? yes/no" update it asked about).
+        chatHistory.push({ role: 'user', content: msg });
+        chatHistory.push({ role: 'assistant', content: data.response });
+        // Keep history bounded so token usage doesn't grow unbounded
+        // over a long session.
+        if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+    } catch(e) {
+        document.getElementById(typingId)?.remove();
+        appendMsg('bot', '⚠ Connection error. Ensure backend is running.');
+    }
+}
+ 
+function sendQuick(msg) {
+    document.getElementById('chat-input').value = msg;
+    sendMessage();
+}
+ 
+document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+ 
+// ── Auto refresh every 30 seconds ──
+setInterval(async () => {
+    try {
+        const res = await fetch(`${API}/api/dashboard`);
+        const newData = await res.json();
+        if (!newData || newData.error) return;
+        globalData = newData;
+        const dashHidden = document.getElementById('dashboard-view').classList.contains('hidden');
+        const selHidden = document.getElementById('selection-view').classList.contains('hidden');
+        if (currentRole === 'owner' && !dashHidden) {
+            renderOwnerDashboard();
+        } else if (currentRole === 'qc' && !dashHidden) {
+            renderQCDashboard();
+        } else if (currentRole === 'manager') {
+            if (!selHidden) {
+                renderLobby();
+            } else if (currentGearboxContext && !dashHidden) {
+                const gbId = currentGearboxContext.match(/GB-\d+/)?.[0];
+                if (gbId) loadGearboxDashboard(gbId);
+            }
+        }
+    } catch(e) {}
+}, 30000);
+ 
+// ── EVENT LOGGING ──
+function showLogButtonForRole() {
+    const btn = document.getElementById('log-event-btn');
+    if (currentRole === 'qc' || currentRole === 'manager') {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+ 
+function openLogModal() {
+    const fields = document.getElementById('log-modal-fields');
+    const title = document.getElementById('log-modal-title');
+    document.getElementById('log-modal-error').classList.add('hidden');
+    document.getElementById('log-modal-success').classList.add('hidden');
+ 
+    if (currentRole === 'qc') {
+        title.textContent = 'Log Quality Defect';
+        const jobs = globalData?.production_jobs || [];
+        fields.innerHTML = `
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Part</label>
+                <select id="log-part" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+                    ${jobs.map(j => `<option value="${j.Part_Code}|${j.Part_Name}">${j.Part_Name} (${j.Part_Code})</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Defect Type</label>
+                <select id="log-defect" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+                    <option>Surface Marks</option>
+                    <option>Dents</option>
+                    <option>Teeth Flattening</option>
+                    <option>Porosity</option>
+                    <option>Centreline Offset</option>
+                    <option>Extra Material</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Decision</label>
+                <select id="log-decision" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+                    <option>Accepted</option>
+                    <option>Rejected</option>
+                    <option>Rework</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Action Taken</label>
+                <input id="log-action" type="text" placeholder="e.g. Buffing machine used" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Your Name</label>
+                <input id="log-reporter" type="text" placeholder="Inspector name" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+            </div>
+        `;
+    } else if (currentRole === 'manager') {
+        title.textContent = 'Log Machine Breakdown';
+        const machines = globalData?.machines || [];
+        fields.innerHTML = `
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Machine</label>
+                <select id="log-part" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+                    ${machines.map(m => `<option value="${m.Machine_ID}|${m.Machine_Name}">${m.Machine_Name} (${m.Machine_ID})</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Issue Details</label>
+                <input id="log-defect" type="text" placeholder="e.g. Gear cutter blade worn out" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Action Taken</label>
+                <input id="log-action" type="text" placeholder="e.g. Called technician" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-1">Your Name</label>
+                <input id="log-reporter" type="text" placeholder="Manager name" class="w-full bg-opsBg border border-opsBorder rounded py-2 px-3 text-zinc-200 text-sm font-mono">
+            </div>
+        `;
+    }
+ 
+    document.getElementById('log-modal').classList.remove('hidden');
+    document.getElementById('log-modal').classList.add('flex');
+}
+ 
+function closeLogModal() {
+    document.getElementById('log-modal').classList.add('hidden');
+    document.getElementById('log-modal').classList.remove('flex');
+}
+ 
+async function submitLogEvent() {
+    const errorEl = document.getElementById('log-modal-error');
+    const successEl = document.getElementById('log-modal-success');
+    errorEl.classList.add('hidden');
+    successEl.classList.add('hidden');
+ 
+    const reporter = document.getElementById('log-reporter').value.trim();
+    if (!reporter) {
+        errorEl.textContent = 'Please enter your name.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+ 
+    let payload = {};
+ 
+    if (currentRole === 'qc') {
+        const [partCode, partName] = document.getElementById('log-part').value.split('|');
+        payload = {
+            event_type: 'Quality_Defect',
+            entity_id: partCode,
+            entity_name: partName,
+            details: `${document.getElementById('log-defect').value} — Decision: ${document.getElementById('log-decision').value}`,
+            reported_by: reporter,
+            shift: 'Morning',
+            action_taken: document.getElementById('log-action').value || 'Pending'
+        };
+    } else if (currentRole === 'manager') {
+        const [machineId, machineName] = document.getElementById('log-part').value.split('|');
+        payload = {
+            event_type: 'Machine_Breakdown',
+            entity_id: machineId,
+            entity_name: machineName,
+            details: document.getElementById('log-defect').value || 'Breakdown reported',
+            reported_by: reporter,
+            shift: 'Morning',
+            action_taken: document.getElementById('log-action').value || 'Pending'
+        };
+    }
+ 
+    try {
+        const res = await fetch(`${API}/api/log-event`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            successEl.textContent = `✓ Logged successfully — ${data.event_id}`;
+            successEl.classList.remove('hidden');
+            setTimeout(() => {
+                closeLogModal();
+                fetchData();
+            }, 1200);
+        } else {
+            errorEl.textContent = data.error || 'Failed to log event.';
+            errorEl.classList.remove('hidden');
+        }
+    } catch(e) {
+        errorEl.textContent = 'Connection error.';
+        errorEl.classList.remove('hidden');
+    }
+}
+</script>
+<!-- LOG EVENT MODAL -->
+<div id="log-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="glass-card rounded-xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="log-modal-title" class="text-white font-semibold">Log Event</h3>
+            <button onclick="closeLogModal()" class="text-zinc-500 hover:text-white">✕</button>
+        </div>
+        <div id="log-modal-fields" class="space-y-3"></div>
+        <div id="log-modal-error" class="hidden text-[11px] font-mono text-critical mt-2"></div>
+        <div id="log-modal-success" class="hidden text-[11px] font-mono text-success mt-2"></div>
+        <button onclick="submitLogEvent()" class="w-full bg-accent hover:bg-indigo-500 text-white font-medium py-2.5 rounded mt-4 transition-colors">
+            Submit Log
+        </button>
+    </div>
+</div>
+</body>
+</html>
