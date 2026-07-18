@@ -23,7 +23,7 @@
 
 ## 📹 Demo Video
 
-[Link to demo video — coming soon]
+[Watch the OpsPilot demo video](https://drive.google.com/file/d/116pHzYeLqxPkv7SVg072H8QgMEtvSX2O/view?usp=sharing)
 
 ---
 
